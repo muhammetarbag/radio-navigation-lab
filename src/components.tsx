@@ -742,7 +742,7 @@ export function NavMap({
             <text
               x={(ac.x + v.x) / 2 + 12}
               y={(ac.y + v.y) / 2 - 12}
-              className="map-data"
+              className="map-data map-halo"
             >
               R {fmt(m.vor.radial)}°
             </text>
@@ -813,7 +813,7 @@ export function NavMap({
             strokeWidth="3"
             markerEnd="url(#bearing-arrow)"
           />
-          <text x={ac.x + 55} y={ac.y + 25} className="map-data">
+          <text x={ac.x + 55} y={ac.y + 25} className="map-data map-halo">
             RB {fmt(m.adf.relative)}°
           </text>
         </g>
@@ -837,7 +837,7 @@ export function NavMap({
             fill="none"
             stroke="var(--mint)"
           />
-          <text x={v.x + 22} y={v.y + 6} className="map-data">
+          <text x={v.x + 22} y={v.y + 6} className="map-data map-halo">
             ANK · 113.60
           </text>
         </g>
