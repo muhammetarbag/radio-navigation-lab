@@ -424,6 +424,12 @@ h1 em {
   font-size: 12px;
   letter-spacing: 0.4px;
 }
+.map-halo {
+  paint-order: stroke;
+  stroke: #101e2e;
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
 .terrain-line {
   stroke: #34515c;
   stroke-width: 1.5;
