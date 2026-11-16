@@ -220,6 +220,12 @@ class BrowserChecks(unittest.TestCase):
         self.page.get_by_role("button", name="Tahmini kontrol et", exact=True).click()
         expect(self.page.get_by_role("status").filter(has_text="NM")).to_contain_text("Doğru")
         expect(experiment.get_by_role("status")).to_contain_text("Doğru")
+        # The verdict is a snapshot: retuning to the ILS DME moves the live range but not the graded one.
+        self.page.get_by_label("NAV frekansı", exact=True).select_option("110.3")
+        expect(self.page.get_by_test_id("dme-range")).not_to_have_text("1.65")
+        expect(self.page.get_by_role("status").filter(has_text="NM")).to_have_text("Doğru! DME 1.65 NM.")
+        expect(experiment.get_by_role("status")).to_contain_text("Doğru")
+        self.page.get_by_label("NAV frekansı", exact=True).select_option("113.6")
         self.page.get_by_role("button", name="DME yanıtı açık", exact=True).click()
         expect(self.page.get_by_test_id("dme-range")).to_have_text("—.—")
         self.number("DME irtifa farkı", 30000)
@@ -234,6 +240,14 @@ class BrowserChecks(unittest.TestCase):
         self.number("Orta noktadaki arazi engeli", 10000)
         self.number("VHF uçak irtifası", 1000)
         expect(self.page.locator(".status").first).to_have_text("BLOCKED")
+        # Defaults: 12 MHz, foF2 9 MHz, 1800 NM. Secant law gives MUF ≈ 30.1 MHz and a ≈ 291 NM skip.
+        expect(self.page.get_by_test_id("hf-muf")).to_have_text("30.1MHz")
+        expect(self.page.get_by_test_id("hf-skip")).to_have_text("291NM")
+        hf_status = self.page.locator(".panel").filter(has_text="HF · Ufkun ötesi").locator(".status")
+        expect(hf_status).to_have_text("BAĞLANTI")
+        self.number("HF bağlantı mesafesi", 250)
+        expect(hf_status).to_have_text("ZAYIF / SKIP ZONE")
+        self.number("HF bağlantı mesafesi", 1800)
         for scenario, answer in [("Terminal sahası", "VHF"), ("Yüksek irtifa enroute", "VHF"), ("Uzak okyanus", "HF"), ("Dağın arkasında alçak uçuş", "Bağlantı garanti değil")]:
             self.page.get_by_role("button", name=scenario, exact=True).click()
             self.page.locator(".choice-grid").get_by_role("button", name=answer, exact=True).click()

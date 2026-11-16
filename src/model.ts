@@ -161,20 +161,43 @@ export function vhf(
         : "GOOD";
   return { horizon, clearance, bulgeFt, quality };
 }
+/** Earth radius and assumed F2 virtual reflection height, both in NM (6371 km, 300 km). */
+export const EARTH_NM = 6371 / 1.852,
+  HF_LAYER_NM = 300 / 1.852;
+/** Angle of incidence at the layer for one hop of `hop` NM (spherical Earth, mirror reflection). */
+const incidence = (hop: number): number => {
+  const phi = hop / 2 / EARTH_NM,
+    k = EARTH_NM / (EARTH_NM + HF_LAYER_NM),
+    elevation = Math.atan2(Math.cos(phi) - k, Math.sin(phi));
+  return Math.asin(k * Math.cos(elevation));
+};
+/** Longest single hop: the ray leaves the ground at 0° elevation. */
+export const HF_MAX_HOP =
+  2 * EARTH_NM * Math.acos(EARTH_NM / (EARTH_NM + HF_LAYER_NM));
 export function hf(frequency: number, condition: number, range: number) {
+  // Assumed foF2 grows linearly with the condition slider: 3–13 MHz.
   const critical = 3 + condition * 0.1,
-    muf = critical * 3,
-    skip = 300 + frequency * 35;
+    hops = Math.max(1, Math.ceil(Math.max(0, range) / HF_MAX_HOP)),
+    // Secant law: MUF = foF2 · sec(i) for the hop length actually flown.
+    muf = critical / Math.cos(incidence(Math.max(0, range) / hops));
+  // Skip distance: the shortest hop whose incidence satisfies sec(i) = f / foF2.
+  const sinI = Math.sqrt(Math.max(0, 1 - (critical / frequency) ** 2)),
+    cosElevation = sinI / (EARTH_NM / (EARTH_NM + HF_LAYER_NM)),
+    skip =
+      frequency <= critical
+        ? 0
+        : cosElevation > 1
+          ? Infinity
+          : 2 *
+            EARTH_NM *
+            (Math.PI / 2 - Math.acos(cosElevation) - Math.asin(sinI));
   const ground = range < Math.max(30, 250 - frequency * 7),
-    sky =
-      frequency <= muf &&
-      frequency >= critical * 0.55 &&
-      range >= skip &&
-      range <= 4000;
+    sky = frequency <= muf && frequency >= critical * 0.55 && range >= skip;
   return {
     critical,
     muf,
     skip,
+    hops,
     ground,
     sky,
     quality: ground || sky ? "BAĞLANTI" : "ZAYIF / SKIP ZONE",
