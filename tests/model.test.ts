@@ -8,9 +8,12 @@ import {
   clamp,
   delta,
   dmeRange,
+  EARTH_NM,
   fmt,
   FT_NM,
   hf,
+  HF_LAYER_NM,
+  HF_MAX_HOP,
   initial,
   ilsGeometry,
   norm,
@@ -341,8 +344,29 @@ test("VHF range and terrain block without breaking arithmetic", () => {
 test("HF skywave, penetrating high frequency and skip zone", () => {
   assert.equal(hf(12, 60, 1800).sky, true);
   assert.equal(hf(30, 0, 1800).sky, false);
-  assert.equal(hf(12, 60, 300).sky, false);
+  assert.equal(hf(12, 60, 200).sky, false);
   assert.equal(hf(3, 50, 50).ground, true);
+});
+test("HF MUF follows the secant law and skip distance follows from it", () => {
+  const foF2 = 9,
+    k = EARTH_NM / (EARTH_NM + HF_LAYER_NM);
+  // Vertical incidence: MUF equals foF2; no skip below foF2.
+  close(hf(12, 60, 0).muf, foF2, 1e-9);
+  assert.equal(hf(8, 60, 500).skip, 0);
+  // Flat-Earth limit for a short hop: sec i = √(1 + (D / 2h)²).
+  close(hf(12, 60, 20).muf, foF2 * Math.hypot(1, 10 / HF_LAYER_NM), 0.01);
+  // Longest single hop leaves at 0° elevation: sin i = R / (R + h).
+  close(HF_MAX_HOP, 2 * EARTH_NM * Math.acos(k), 1e-9);
+  close(hf(12, 60, HF_MAX_HOP).muf, foF2 / Math.sqrt(1 - k * k), 1e-6);
+  // At the skip distance the operating frequency is exactly the MUF.
+  const skip = hf(12, 60, 1000).skip;
+  close(hf(12, 60, skip).muf, 12, 1e-6);
+  assert.equal(hf(12, 60, skip - 1).sky, false);
+  assert.equal(hf(12, 60, skip + 1).sky, true);
+  // Beyond one hop the path is split into equal hops.
+  assert.equal(hf(12, 60, 4500).hops, 3);
+  close(hf(12, 60, 4500).muf, hf(12, 60, 1500).muf, 1e-9);
+  assert.ok(!Number.isFinite(hf(30, 0, 1800).skip));
 });
 test("paused aircraft is stationary", () => {
   const s = initial(),

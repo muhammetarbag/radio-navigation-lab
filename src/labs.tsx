@@ -965,10 +965,16 @@ export function AdfLab({ s, update }: { s: State; update: Update }) {
 export function DmeLab({ s, update }: { s: State; update: Update }) {
   const [prediction, setPrediction] = useState(""),
     [hide, setHide] = useState(false),
-    [result, setResult] = useState(false),
-    [blind, setBlind] = useState(false),
+    // Snapshot at the moment of checking; later geometry or channel changes do not regrade it.
+    [checked, setChecked] = useState<{
+      guess: number;
+      range: number;
+      blind: boolean;
+    } | null>(null),
     m = calculate(s).dme,
     station = s.frequency === 113.6 ? s.vor : s.runway;
+  const correct =
+    checked !== null && Math.abs(checked.guess - checked.range) < 0.1;
   const maxError = Math.max(0.25, Math.ceil(dmeRange(0, s.altitude) * 2) / 2);
   const points = Array.from(
     { length: 101 },
@@ -1041,7 +1047,7 @@ export function DmeLab({ s, update }: { s: State; update: Update }) {
               step={0.1}
               unit="NM"
               onChange={(d) => {
-                setResult(false);
+                setChecked(null);
                 update({ aircraft: project(station, 90, d) });
               }}
             />
@@ -1053,7 +1059,7 @@ export function DmeLab({ s, update }: { s: State; update: Update }) {
               step={100}
               unit="ft"
               onChange={(altitude) => {
-                setResult(false);
+                setChecked(null);
                 update({ altitude });
               }}
             />
@@ -1089,7 +1095,7 @@ export function DmeLab({ s, update }: { s: State; update: Update }) {
             on={hide}
             click={() => {
               setHide(!hide);
-              setResult(false);
+              setChecked(null);
             }}
           >
             Tahmin için ölçümü gizle
@@ -1109,26 +1115,23 @@ export function DmeLab({ s, update }: { s: State; update: Update }) {
             className="button primary"
             disabled={prediction.trim() === "" || !m.valid}
             onClick={() => {
-              setResult(true);
-              setBlind(hide);
+              setChecked({
+                guess: Number(prediction),
+                range: m.range,
+                blind: hide,
+              });
               setHide(false);
             }}
           >
             Tahmini kontrol et
           </button>
-          {result && (
+          {checked && (
             <p
               role="status"
-              className={
-                Math.abs(Number(prediction) - m.range) < 0.1
-                  ? "success-text"
-                  : "amber-text"
-              }
+              className={correct ? "success-text" : "amber-text"}
             >
-              {Math.abs(Number(prediction) - m.range) < 0.1
-                ? "Doğru!"
-                : "Tekrar düşün:"}{" "}
-              DME {m.range.toFixed(2)} NM.
+              {correct ? "Doğru!" : "Tekrar düşün:"} DME{" "}
+              {checked.range.toFixed(2)} NM.
             </p>
           )}
           <Toggle
@@ -1212,7 +1215,7 @@ export function DmeLab({ s, update }: { s: State; update: Update }) {
           m.valid && m.ground < 0.1,
           m.valid && s.altitude >= 10000 && m.ground <= 1,
           m.valid && s.altitude >= 5000 && m.error < 0.02,
-          result && blind && Math.abs(Number(prediction) - m.range) < 0.1,
+          !!checked?.blind && correct,
         ]}
       />
       <SignalChain s={s} update={update} system="DME" />

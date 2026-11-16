@@ -11,7 +11,7 @@ import {
   type Update,
 } from "./components";
 import { glossary } from "./content";
-import { hf, RAD, vhf, type State, type System } from "./model";
+import { hf, HF_MAX_HOP, RAD, vhf, type State, type System } from "./model";
 export function Fundamentals({ s, update }: { s: State; update: Update }) {
   const [term, setTerm] = useState("Radial"),
     [frequency, setFrequency] = useState(100),
@@ -336,8 +336,20 @@ export function Propagation() {
             </text>
           </svg>
           <div className="metrics two">
-            <Metric label="KAVRAMSAL MUF" value={h.muf.toFixed(1)} unit="MHz" />
-            <Metric label="YAKLAŞIK SKIP SINIRI" value={h.skip} unit="NM" />
+            <Metric
+              label={`MUF = foF2 · sec i · ${h.hops} HOP`}
+              value={h.muf.toFixed(1)}
+              unit="MHz"
+              id="hf-muf"
+            />
+            <Metric
+              label="SKIP MESAFESİ"
+              value={
+                Number.isFinite(h.skip) ? Math.round(h.skip) : "TEK HOP YOK"
+              }
+              unit={Number.isFinite(h.skip) ? "NM" : ""}
+              id="hf-skip"
+            />
           </div>
           <Slider
             label="HF frekansı"
@@ -370,9 +382,14 @@ export function Propagation() {
           </div>
           <Why>
             Skywave, iyonosferde kademeli kırılmayla yere dönebilir. Çizimdeki
-            yay bunu temsil eder. Çok yüksek frekans katmanı geçebilir; daha
-            yakın mesafede skip zone oluşabilir. MUF ve skip sınırları yalnız bu
-            deneyin açıkça basitleştirilmiş eşikleridir.
+            yay bunu temsil eder. Secant yasası: MUF = foF2 · sec i; i, katmana
+            geliş açısıdır ve hop uzadıkça büyür. Skip mesafesi, sec i = f /
+            foF2 koşulunu sağlayan en kısa hop'tur; f ≤ foF2 ise skip yoktur.
+            Varsayımlar: foF2 = 3 + 0.1 × koşul = {h.critical.toFixed(1)} MHz,
+            F2 sanal yüksekliği 300 km, küresel Dünya ve ayna yansıma; tek hop
+            en çok {Math.round(HF_MAX_HOP)} NM, daha uzun yol eşit hop'lara
+            bölünür. Alt sınır (0.55 × foF2) ve yer dalgası menzili hâlâ kaba
+            eğitim eşikleridir; soğurma ve güç hesaplanmaz.
           </Why>
         </Panel>
       </div>
