@@ -6,7 +6,7 @@ Türkçe, etkileşimli radyo seyrüsefer laboratuvarı. React + TypeScript + Vit
 
 ## GitHub Pages
 
-`codex/radio-navigation-lab` dalındaki değişiklikler, model testleri, TypeScript/üretim derlemesi ve 17 Chromium senaryosu geçtikten sonra GitHub Actions üzerinden yayımlanır. Yayınlanan paket `dist/` klasörüdür.
+`main` dalındaki değişiklikler, model testleri, TypeScript/üretim derlemesi ve 17 Chromium senaryosu geçtikten sonra GitHub Actions üzerinden yayımlanır. Yayınlanan paket `dist/` klasörüdür.
 
 ## Çalıştırma
 
