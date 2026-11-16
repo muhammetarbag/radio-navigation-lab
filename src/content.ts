@@ -533,7 +533,7 @@ export const cases: Case[] = [
   },
   {
     title: "LOC var, GS yok",
-    symptom: "Yatay iğne konuma tepki veriyor; GS bayrağı görünüyor.",
+    symptom: "LOC iğnesi konuma tepki veriyor; GS bayrağı görünüyor.",
     checks: {
       Gösterge: "LOC VALID, GS INVALID; uçak normal yaklaşma sektörü içinde.",
       İstasyon: "LOC test normal; GS transmitter çıkışı yok.",
