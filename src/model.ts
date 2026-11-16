@@ -359,8 +359,7 @@ export const faultInfo: Record<
   },
   gs: {
     label: "GLIDESLOPE SIGNAL LOST",
-    description:
-      "GS vericisi kayıp: dikey iğne kaldırılır, GS bayrağı görünür.",
+    description: "GS vericisi kayıp: GS iğnesi kaldırılır, GS bayrağı görünür.",
     remaining:
       "LOC yatay rehberliği sürer. Bu gösterim yaklaşma prosedürü yetkisi vermez.",
   },

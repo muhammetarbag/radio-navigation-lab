@@ -303,10 +303,10 @@ export function IlsViews({
         <path d="M50 45L759 260 50 260Z" fill="#56decb" opacity=".025" />
         {signals && (
           <>
-            <path d="M45 20L759 260 45 70Z" fill="#56decb" opacity=".13" />
-            <path d="M45 65L759 260 45 120Z" fill="#bd82de" opacity=".13" />
+            <path d="M45 20L759 260 45 70Z" fill="#bd82de" opacity=".13" />
+            <path d="M45 65L759 260 45 120Z" fill="#56decb" opacity=".13" />
             <text x="285" y="47" className="map-label">
-              150 Hz ÜST / 90 Hz ALT
+              90 Hz ÜST / 150 Hz ALT
             </text>
           </>
         )}
@@ -966,6 +966,7 @@ export function DmeLab({ s, update }: { s: State; update: Update }) {
   const [prediction, setPrediction] = useState(""),
     [hide, setHide] = useState(false),
     [result, setResult] = useState(false),
+    [blind, setBlind] = useState(false),
     m = calculate(s).dme,
     station = s.frequency === 113.6 ? s.vor : s.runway;
   const maxError = Math.max(0.25, Math.ceil(dmeRange(0, s.altitude) * 2) / 2);
@@ -1109,6 +1110,7 @@ export function DmeLab({ s, update }: { s: State; update: Update }) {
             disabled={prediction.trim() === "" || !m.valid}
             onClick={() => {
               setResult(true);
+              setBlind(hide);
               setHide(false);
             }}
           >
@@ -1210,7 +1212,7 @@ export function DmeLab({ s, update }: { s: State; update: Update }) {
           m.valid && m.ground < 0.1,
           m.valid && s.altitude >= 10000 && m.ground <= 1,
           m.valid && s.altitude >= 5000 && m.error < 0.02,
-          result && Math.abs(Number(prediction) - m.range) < 0.1,
+          result && blind && Math.abs(Number(prediction) - m.range) < 0.1,
         ]}
       />
       <SignalChain s={s} update={update} system="DME" />
